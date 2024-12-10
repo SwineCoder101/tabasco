@@ -23,7 +23,9 @@
     "@nestjs/common": "^10.0.0",
     "@nestjs/core": "^10.0.0",
     "@nestjs/platform-express": "^10.0.0",
+    "@pinata/sdk": "^2.1.0",
     "axios": "^1.7.9",
+    "fs": "^0.0.1-security",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1"
   },
