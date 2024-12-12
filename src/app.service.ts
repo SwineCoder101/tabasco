@@ -1,13 +1,26 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { KeyPairSigner } from '@solana/web3.js';
+import { TokenService } from './token.service';
 
 @Injectable()
 export class AppService {
   private readonly logger = new Logger(AppService.name);
 
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService,
+    private readonly tokenService: TokenService,
+  ) {
     this.logEnvVariables();
+    this.initialize();
+  }
+
+  private async initialize() {
+    await this.tokenService.createTokenMintAccount(
+      'BONK Token',
+      'BONK',
+      'https://idylufmhksp63vptfnctn2qcjphffwwryc5cbw4wd2xnyiqzf3ga.arweave.net/QPC6FYdUn-3V8ytFNuoCS85S2tHAuiDblh6u3CIZLsw',
+      10000000000000,
+    );
   }
 
   private logEnvVariables(): void {
@@ -34,11 +47,6 @@ export class AppService {
     this.logger.debug(`NEYNAR_API_KEY: ${neynarApiKey}`);
     this.logger.debug(`NEYNAR_WEBHOOK_SECRET: ${neynarWebhookSecret}`);
     this.logger.debug(`ANTHROPIC_API_KEY: ${anthropicApiKey}`);
-
-    this.logger.log(
-      'Authority wallet:',
-      this.configService.get<KeyPairSigner<string>>('authorityWallet')?.address,
-    );
   }
 
   getHello(): string {
