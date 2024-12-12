@@ -8,3 +8,9 @@ export async function createWallet(secretKeyString: string) {
 export function getKeypair(secretKeyString: string) {
   return Uint8Array.from(JSON.parse(secretKeyString));
 }
+
+export async function getAuthorityWallet(secretKeyString: string) {
+  const keypairBytes = getKeypair(secretKeyString);
+  const authority = await createKeyPairSignerFromBytes(keypairBytes);
+  return authority;
+}

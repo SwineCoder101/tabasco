@@ -20,21 +20,18 @@ import {
   sendAndConfirmInstructions,
 } from './_setup';
 import { getKeypair } from './wallet-utils';
-// import dotenv from 'dotenv';
 
-// console.log(dotenv);
-
-// dotenv.config();
-
-type Client = {
+export type Client = {
   rpc: Rpc<SolanaRpcApi>;
   rpcSubscriptions: RpcSubscriptions<SolanaRpcSubscriptionsApi>;
 };
 
-export const createClient = (): Client => {
-  const rpc = createSolanaRpc('https://api.devnet.solana.com');
+export const createClient = (rpcUrl?: string, rpcWss?: string): Client => {
+  const rpc: Rpc<SolanaRpcApi> = createSolanaRpc(
+    rpcUrl || 'https://api.devnet.solana.com',
+  );
   const rpcSubscriptions = createSolanaRpcSubscriptions(
-    'wss://api.devnet.solana.com/',
+    rpcWss || 'wss://api.devnet.solana.com/',
   );
   return { rpc, rpcSubscriptions };
 };
