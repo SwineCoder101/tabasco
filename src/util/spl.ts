@@ -1,24 +1,25 @@
 import {
-  createSolanaRpc,
-  Rpc,
-  RpcSubscriptions,
-  SolanaRpcApi,
-  SolanaRpcSubscriptionsApi,
-  createSolanaRpcSubscriptions,
-  some,
-  createKeyPairSignerFromBytes,
-  generateKeyPairSigner,
-} from '@solana/web3.js';
-import { getKeypair } from './wallet-utils';
-import {
   extension,
   getInitializeMetadataPointerInstruction,
   getInitializeTokenMetadataInstruction,
 } from '@solana-program/token-2022';
 import {
+  createKeyPairSignerFromBytes,
+  createSolanaRpc,
+  createSolanaRpcSubscriptions,
+  generateKeyPairSigner,
+  Rpc,
+  RpcSubscriptions,
+  SolanaRpcApi,
+  SolanaRpcSubscriptionsApi,
+  some,
+} from '@solana/web3.js';
+import {
+  createTokenWithAmount,
   getCreateMintInstructions,
   sendAndConfirmInstructions,
 } from './_setup';
+import { getKeypair } from './wallet-utils';
 // import dotenv from 'dotenv';
 
 // console.log(dotenv);
@@ -52,7 +53,6 @@ async function main() {
     mint: mint.address,
     name: 'Bonk',
     symbol: 'Bonk',
-    // image: 'https://arweave.net/hQiPZOsRZXGXBJd_82PhVdlM_hACsT_q6wqwf5cSY7I',
     uri: 'https://idylufmhksp63vptfnctn2qcjphffwwryc5cbw4wd2xnyiqzf3ga.arweave.net/QPC6FYdUn-3V8ytFNuoCS85S2tHAuiDblh6u3CIZLsw',
     additionalMetadata: new Map<string, string>(),
   });
@@ -70,6 +70,7 @@ async function main() {
       mint,
       payer: authority,
     });
+
   const tx = await sendAndConfirmInstructions(client, authority, [
     createMintInstruction,
     getInitializeMetadataPointerInstruction({
@@ -90,6 +91,18 @@ async function main() {
   ]);
 
   console.log('tx: ', tx);
+  console.log('mint address: ', mint.address);
+
+  const tokenAccount = await createTokenWithAmount({
+    client,
+    payer: authority,
+    mint: mint.address,
+    amount: 3000000000,
+    mintAuthority: authority,
+    owner: authority,
+  });
+
+  console.log('tokenAccount: ', tokenAccount);
 }
 
 main().catch((error) => {
