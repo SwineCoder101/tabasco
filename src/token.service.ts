@@ -5,7 +5,12 @@ import {
   getInitializeMetadataPointerInstruction,
   getInitializeTokenMetadataInstruction,
 } from '@solana-program/token-2022';
-import { generateKeyPairSigner, KeyPairSigner, some } from '@solana/web3.js';
+import {
+  Address,
+  generateKeyPairSigner,
+  KeyPairSigner,
+  some,
+} from '@solana/web3.js';
 import {
   createTokenWithAmount,
   getCreateMintInstructions,
@@ -33,7 +38,7 @@ export class TokenService {
     amount: number,
     additionalMetadata?: Map<string, string>,
     userWaller?: string,
-  ): Promise<void> {
+  ): Promise<{ mint: KeyPairSigner; tokenAccount: Address }> {
     this.logger.log(
       `Creating token mint account with name: ${name} and symbol: ${symbol} and uri: ${uri} and userWallet: ${userWaller}`,
     );
@@ -91,11 +96,12 @@ export class TokenService {
       client: this.client,
       payer: this.authority,
       mint: mint.address,
-      amount,
+      amount: 1000000n,
       mintAuthority: this.authority,
       owner: this.authority,
     });
 
     this.logger.log(`Token account created: ${tokenAccount}`);
+    return { mint, tokenAccount };
   }
 }

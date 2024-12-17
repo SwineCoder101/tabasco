@@ -5,6 +5,7 @@ import { ConfigModule } from '@nestjs/config';
 import configuration from './config/configuration';
 import { validationSchema } from './config/validationSchema';
 import { TokenService } from './token.service';
+import { SolanaOrcaService } from './orca.service';
 
 @Module({
   imports: [
@@ -14,6 +15,6 @@ import { TokenService } from './token.service';
     }),
   ],
   controllers: [AppController],
-  providers: [AppService, TokenService],
+  providers: [AppService, TokenService, SolanaOrcaService],
 })
 export class AppModule {}

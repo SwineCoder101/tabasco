@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TokenService } from './token.service';
+import { SolanaOrcaService } from './orca.service';
 
 @Injectable()
 export class AppService {
@@ -9,18 +10,46 @@ export class AppService {
   constructor(
     private configService: ConfigService,
     private readonly tokenService: TokenService,
+    private readonly orcaService: SolanaOrcaService,
   ) {
     this.logEnvVariables();
-    this.initialize();
+    // this.initialize(); // Enable for testing purposes
   }
 
   private async initialize() {
-    await this.tokenService.createTokenMintAccount(
-      'BONK Token',
-      'BONK',
+    const supply = 10000000000000;
+    const { mint } = await this.tokenService.createTokenMintAccount(
+      'Test BONK Token',
+      'TBONK',
       'https://idylufmhksp63vptfnctn2qcjphffwwryc5cbw4wd2xnyiqzf3ga.arweave.net/QPC6FYdUn-3V8ytFNuoCS85S2tHAuiDblh6u3CIZLsw',
-      10000000000000,
+      supply,
     );
+
+    const tokenMintOne = 'So11111111111111111111111111111111111111112';
+    const tokenMintTwo = mint.address.toString();
+    // const tokenMintTwo = '5R8s5kijn8UnCmPCiY7EuPWknt3vrCFpmdo2DrYXLCwJ';
+    const tickSpacing = 64;
+    const initialPrice = 0.0001;
+
+    const poolAddress = await this.orcaService.createPool(
+      tokenMintOne,
+      tokenMintTwo,
+      tickSpacing,
+      initialPrice,
+    );
+
+    this.logger.log(`Pool created at: ${poolAddress}`);
+
+    // const initializedPoolAddr = await this.orcaService.getInitializedPool(
+    //   tokenMintOne,
+    //   tokenMintTwo,
+    // );
+
+    // this.logger.log(`Initialized Pool: ${initializedPoolAddr}`);
+
+    await this.orcaService.createPosition(poolAddress, {
+      tokenB: 10000n,
+    });
   }
 
   private logEnvVariables(): void {

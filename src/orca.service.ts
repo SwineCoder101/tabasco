@@ -1,3 +1,5 @@
+import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import {
   createConcentratedLiquidityPoolInstructions,
   fetchWhirlpoolsByTokenPair,
@@ -7,45 +9,38 @@ import {
 } from '@orca-so/whirlpools';
 import {
   address,
-  createKeyPairSignerFromBytes,
-  createSolanaRpc,
-  devnet,
-  createTransactionMessage,
-  pipe,
-  setTransactionMessageFeePayerSigner,
   appendTransactionMessageInstructions,
-  sendAndConfirmTransactionFactory,
-  createSolanaRpcSubscriptions,
-  signTransactionMessageWithSigners,
-  setTransactionMessageLifetimeUsingBlockhash,
+  createTransactionMessage,
   IInstruction,
+  KeyPairSigner,
+  pipe,
+  sendAndConfirmTransactionFactory,
+  setTransactionMessageFeePayerSigner,
+  setTransactionMessageLifetimeUsingBlockhash,
+  signTransactionMessageWithSigners,
 } from '@solana/web3.js';
-import { Injectable } from '@nestjs/common';
-import * as fs from 'fs';
+import { Client } from './util/spl';
 
 @Injectable()
 export class SolanaOrcaService {
-  private devnetRpc = createSolanaRpc(devnet('https://api.devnet.solana.com'));
-  private wssProvider = 'wss://api.devnet.solana.com/';
-  private rpcSubscriptions = createSolanaRpcSubscriptions(this.wssProvider);
-  private wallet: any;
+  private readonly logger = new Logger(SolanaOrcaService.name);
 
-  constructor() {
+  private client: Client;
+  private authority: KeyPairSigner;
+
+  constructor(private configService: ConfigService) {
+    this.client = configService.get<Client>('solClient');
+    this.authority = configService.get<KeyPairSigner>('authorityWallet');
+    this.logger.log(
+      `Using authority: ${this.authority.address} to create Orca pools`,
+    );
     this.initialize();
   }
 
-  private async initialize() {
-    const keypairPath = 'solana-wallet/keypair.json';
-    this.wallet = await this.createWallet(keypairPath);
-    setDefaultFunder(this.wallet);
+  async initialize() {
+    this.logger.debug(`Setting whirlpools config to solanaDevnet`);
     await setWhirlpoolsConfig('solanaDevnet');
-  }
-
-  private async createWallet(keypairPath: string) {
-    const keyPairBytes = new Uint8Array(
-      JSON.parse(fs.readFileSync(keypairPath, 'utf8')),
-    );
-    return await createKeyPairSignerFromBytes(keyPairBytes);
+    setDefaultFunder(this.authority);
   }
 
   async createPool(
@@ -56,16 +51,22 @@ export class SolanaOrcaService {
   ) {
     const { poolAddress, instructions, initializationCost } =
       await createConcentratedLiquidityPoolInstructions(
-        this.devnetRpc,
+        this.client.rpc,
         address(tokenMintOne),
         address(tokenMintTwo),
         tickSpacing,
         initialPrice,
-        this.wallet,
+        this.authority,
       );
 
-    console.log('Pool address:', poolAddress);
-    console.log('Initialization cost:', initializationCost);
+    this.logger.debug(`Creating Orca pool with the following parameters:`);
+    this.logger.debug(`Token Mint One: ${tokenMintOne}`);
+    this.logger.debug(`Token Mint Two: ${tokenMintTwo}`);
+    this.logger.debug(`Tick Spacing: ${tickSpacing}`);
+    this.logger.debug(`Initial Price: ${initialPrice}`);
+
+    this.logger.log(`Pool address: ${poolAddress}`);
+    this.logger.log(`Initialization cost: ${initializationCost}`);
 
     await this.executeInstructions(instructions);
     return poolAddress;
@@ -73,7 +74,7 @@ export class SolanaOrcaService {
 
   async fetchWhirlpool(tokenMintOne: string, tokenMintTwo: string) {
     const pools = await fetchWhirlpoolsByTokenPair(
-      this.devnetRpc,
+      this.client.rpc,
       address(tokenMintOne),
       address(tokenMintTwo),
     );
@@ -81,52 +82,67 @@ export class SolanaOrcaService {
     return initializedPool?.address.toString();
   }
 
+  async getInitializedPool(tokenMintOne: string, tokenMintTwo: string) {
+    const pools = await fetchWhirlpoolsByTokenPair(
+      this.client.rpc,
+      address(tokenMintOne),
+      address(tokenMintTwo),
+    );
+    return pools.find((pool) => pool.initialized)?.address.toString();
+  }
+
   async createPosition(whirlpoolAddress: string, param: any) {
     const lowerBound = 0.0001; // Example lower bound
     const upperBound = 0.0005; // Example upper bound
 
+    this.logger.debug(`Creating position with the following parameters:`);
+    this.logger.debug(`Whirlpool Address: ${whirlpoolAddress}`);
+    this.logger.debug(`TokenB amount: ${param?.tokenB.toString()}`);
+    this.logger.debug(`Lower Bound: ${lowerBound}`);
+    this.logger.debug(`Upper Bound: ${upperBound}`);
+
     const { instructions, positionMint } = await openPositionInstructions(
-      this.devnetRpc,
+      this.client.rpc,
       address(whirlpoolAddress),
       param,
       lowerBound,
       upperBound,
       100,
-      this.wallet,
+      this.authority,
     );
 
-    console.log('Position mint:', positionMint);
+    this.logger.log(`Created Position Mint: ${positionMint}`);
     await this.executeInstructions(instructions);
     return positionMint;
   }
 
   private async executeInstructions(instructions: IInstruction<string>[]) {
     try {
-      const { value: latestBlockhash } = await this.devnetRpc
+      const { value: latestBlockhash } = await this.client.rpc
         .getLatestBlockhash()
         .send();
       const txMessage = pipe(
         createTransactionMessage({ version: 0 }),
-        (tx) => setTransactionMessageFeePayerSigner(this.wallet, tx),
+        (tx) => setTransactionMessageFeePayerSigner(this.authority, tx),
         (tx) => appendTransactionMessageInstructions(instructions, tx),
         (tx) =>
           setTransactionMessageLifetimeUsingBlockhash(latestBlockhash, tx),
       );
 
       const sendAndConfirmTransaction = sendAndConfirmTransactionFactory({
-        rpc: this.devnetRpc,
-        rpcSubscriptions: this.rpcSubscriptions,
+        rpc: this.client.rpc,
+        rpcSubscriptions: this.client.rpcSubscriptions,
       });
 
       const signedTx = await signTransactionMessageWithSigners(txMessage);
       const confirmedTx = await sendAndConfirmTransaction(signedTx, {
         commitment: 'confirmed',
       });
-      console.log('Sent transaction:', confirmedTx);
+      this.logger.log(`Sent transaction: ${confirmedTx}`);
 
       return confirmedTx;
     } catch (error) {
-      console.error('Transaction execution error:', error);
+      this.logger.error(`Transaction execution error: ${error}`);
       throw error;
     }
   }
