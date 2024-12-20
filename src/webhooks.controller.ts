@@ -5,40 +5,27 @@ import {
   Res,
   HttpException,
   HttpStatus,
+  Logger,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { ConfigService } from '@nestjs/config';
-import { createHmac } from 'crypto';
-import { Cast } from '@neynar/nodejs-sdk/build/api';
 import { AIService } from './ai.service';
-import neynarClient from './config/neynarClient';
+import { NeynarService } from './neynar.service';
 
 @Controller('webhooks')
 export class WebhooksController {
+  private readonly logger = new Logger(WebhooksController.name);
+
   constructor(
-    private readonly configService: ConfigService,
     private readonly aiService: AIService,
+    private readonly neynarService: NeynarService,
   ) {}
 
   @Post('reply')
   async handleReply(@Req() req: Request, @Res() res: Response) {
     try {
       const body = req.body;
-
-      const webhookSecret = this.configService.get<string>(
-        'NEYNAR_WEBHOOK_SECRET',
-      );
-      const signerUuid = this.configService.get<string>('SIGNER_UUID');
-      const neynarApiKey = this.configService.get<string>('NEYNAR_API_KEY');
-
-      if (!signerUuid || !neynarApiKey || !webhookSecret) {
-        throw new HttpException(
-          'Make sure you set SIGNER_UUID, NEYNAR_API_KEY, and NEYNAR_WEBHOOK_SECRET in your .env file',
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-
       const sig = req.headers['x-neynar-signature'] as string;
+
       if (!sig) {
         throw new HttpException(
           'Neynar signature missing from request headers',
@@ -46,33 +33,16 @@ export class WebhooksController {
         );
       }
 
-      const hmac = createHmac('sha512', webhookSecret);
-      hmac.update(JSON.stringify(body));
-      const generatedSignature = hmac.digest('hex');
-
-      const isValid = generatedSignature === sig;
-      if (!isValid) {
-        throw new HttpException(
-          'Invalid webhook signature',
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-
-      const hookData = body as {
-        created_at: number;
-        type: 'cast.created';
-        data: Cast;
-      };
+      const hookData = await this.neynarService.generateHookData(body, sig);
 
       const text = await this.aiService.generateAIResponse(hookData.data);
 
-      const reply = await neynarClient.publishCast({
-        signerUuid,
+      const reply = await this.neynarService.publishReply(
         text,
-        parent: hookData.data.hash,
-      });
+        hookData.data.hash,
+      );
 
-      console.log('reply:', reply);
+      this.logger.log('reply:', reply);
 
       return res.json({
         message: reply,
