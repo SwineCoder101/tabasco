@@ -2,6 +2,9 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TokenService } from './token.service';
 import { SolanaOrcaService } from './orca.service';
+import { NeynarService } from './neynar.service';
+import { AIService } from './ai.service';
+import { Cast } from '@neynar/nodejs-sdk/build/api';
 
 @Injectable()
 export class AppService {
@@ -11,9 +14,37 @@ export class AppService {
     private configService: ConfigService,
     private readonly tokenService: TokenService,
     private readonly orcaService: SolanaOrcaService,
+    private readonly neynarService: NeynarService,
+    private readonly aiService: AIService,
   ) {
     this.logEnvVariables();
+    this.warpcasttest();
     // this.initialize(); // Enable for testing purposes
+  }
+
+  private async warpcasttest() {
+    const msg = 'Its a pleasent evening in Ho Chi Minh City';
+    const response = await this.neynarService.publishCast(msg);
+
+    const cast: Cast = {
+      hash: response.cast.hash,
+      parent_hash: null,
+      parent_url: null,
+      root_parent_url: null,
+      parent_author: null,
+      author: {
+        object: response.cast.author.object,
+        username: response.cast.author.username,
+        custody_address: response.cast.author.custody_address,
+        profile: response.cast.author.profile,
+        // Add other missing properties here
+      },
+      text: msg,
+      timestamp: new Date().toISOString(),
+      embeds: [],
+      type: null,
+    };
+    this.aiService.generateAIResponse(cast);
   }
 
   private async initialize() {

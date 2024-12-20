@@ -6,6 +6,8 @@ import configuration from './config/configuration';
 import { validationSchema } from './config/validationSchema';
 import { TokenService } from './token.service';
 import { SolanaOrcaService } from './orca.service';
+import { AIService } from './ai.service';
+import { NeynarService } from './neynar.service';
 
 @Module({
   imports: [
@@ -15,6 +17,12 @@ import { SolanaOrcaService } from './orca.service';
     }),
   ],
   controllers: [AppController],
-  providers: [AppService, TokenService, SolanaOrcaService],
+  providers: [
+    AppService,
+    TokenService,
+    SolanaOrcaService,
+    AIService,
+    NeynarService,
+  ],
 })
 export class AppModule {}

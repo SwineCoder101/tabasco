@@ -10,12 +10,15 @@ import { Request, Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { createHmac } from 'crypto';
 import { Cast } from '@neynar/nodejs-sdk/build/api';
-import { generateAIResponse } from './config/ai';
+import { AIService } from './ai.service';
 import neynarClient from './config/neynarClient';
 
 @Controller('webhooks')
 export class WebhooksController {
-  constructor(private readonly configService: ConfigService) {}
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly aiService: AIService,
+  ) {}
 
   @Post('reply')
   async handleReply(@Req() req: Request, @Res() res: Response) {
@@ -61,7 +64,7 @@ export class WebhooksController {
         data: Cast;
       };
 
-      const text = await generateAIResponse(hookData.data);
+      const text = await this.aiService.generateAIResponse(hookData.data);
 
       const reply = await neynarClient.publishCast({
         signerUuid,
