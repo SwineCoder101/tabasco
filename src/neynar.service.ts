@@ -34,6 +34,27 @@ export class NeynarService {
     }
   }
 
+  async publishReply(
+    msg: string,
+    parentHash: string,
+  ): Promise<PostCastResponse> {
+    try {
+      this.logger.debug(`Publishing reply message: ${msg}`);
+
+      const response = await this.client.publishCast({
+        signerUuid: this.signerUuid,
+        text: msg,
+        parent: parentHash,
+      });
+
+      this.logger.debug(`Response: ${JSON.stringify(response)}`);
+
+      return response;
+    } catch (err) {
+      this.logger.error('Error publishing reply:', err);
+    }
+  }
+
   getClient(): NeynarAPIClient {
     return this.client;
   }
