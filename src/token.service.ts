@@ -18,12 +18,22 @@ import {
 } from './util/_setup';
 import { Client } from './util/spl';
 
+// { mint: KeyPairSigner; tokenAccount: Address }
+export interface CreatedTokenMintAccount {
+  mint: KeyPairSigner;
+  tokenAccount: Address;
+  associatedTokenAccount: Address;
+}
+
 @Injectable()
 export class TokenService {
   private readonly logger = new Logger(TokenService.name);
 
   private client: Client;
   private authority: KeyPairSigner;
+  private mintAddress: Address;
+  private tokenAccount: Address;
+  private associatedTokenAccount: Address;
 
   constructor(private configService: ConfigService) {
     this.client = configService.get<Client>('solClient');
@@ -35,10 +45,9 @@ export class TokenService {
     name: string,
     symbol: string,
     uri: string,
-    amount: number,
     additionalMetadata?: Map<string, string>,
     userWaller?: string,
-  ): Promise<{ mint: KeyPairSigner; tokenAccount: Address }> {
+  ): Promise<CreatedTokenMintAccount> {
     this.logger.log(
       `Creating token mint account with name: ${name} and symbol: ${symbol} and uri: ${uri} and userWallet: ${userWaller}`,
     );
@@ -92,16 +101,23 @@ export class TokenService {
     this.logger.log(`Transaction successful: ${tx}`);
     this.logger.log(`Mint address: ${mint.address}`);
 
-    const tokenAccount = await createTokenWithAmount({
-      client: this.client,
-      payer: this.authority,
-      mint: mint.address,
-      amount: 1000000n,
-      mintAuthority: this.authority,
-      owner: this.authority,
-    });
+    const { tokenAccount, associatedTokenAccount, ataSignature } =
+      await createTokenWithAmount({
+        client: this.client,
+        payer: this.authority,
+        mint: mint.address,
+        amount: 1000000000n,
+        mintAuthority: this.authority,
+        owner: this.authority,
+      });
 
-    this.logger.log(`Token account created: ${tokenAccount}`);
-    return { mint, tokenAccount };
+    this.mintAddress = mint.address;
+    this.tokenAccount = tokenAccount;
+    this.associatedTokenAccount = associatedTokenAccount;
+
+    this.logger.log(
+      `Token account created: ${tokenAccount} with association:  ${associatedTokenAccount} on signature: ${ataSignature}`,
+    );
+    return { mint, tokenAccount, associatedTokenAccount };
   }
 }

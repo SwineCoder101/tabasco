@@ -16,7 +16,8 @@ export default async () => {
       apiSecret: process.env.PINATA_API_SECRET,
       jwtToken: process.env.PINATA_JWT_TOKEN,
     },
-    rpc: process.env.RPC,
+    rpcUrl: process.env.RPC,
+    rpcWss: process.env.RPC_WSS,
     secretKeyPair: process.env.SECRET_KEY_PAIR,
     signerUuid: process.env.SIGNER_UUID,
     neynar: {

@@ -4,8 +4,10 @@ import {
   Commitment,
   CompilableTransactionMessage,
   IInstruction,
+  KeyPairSigner,
   Rpc,
   RpcSubscriptions,
+  Signature,
   SolanaRpcApi,
   SolanaRpcSubscriptionsApi,
   TransactionMessageWithBlockhashLifetime,
@@ -36,12 +38,19 @@ import {
   getPostInitializeInstructionsForMintExtensions,
   getPostInitializeInstructionsForTokenExtensions,
   Extension,
+  getCreateAssociatedTokenInstructionAsync,
+  findAssociatedTokenPda,
 } from '@solana-program/token-2022';
 
 type Client = {
   rpc: Rpc<SolanaRpcApi>;
   rpcSubscriptions: RpcSubscriptions<SolanaRpcSubscriptionsApi>;
 };
+export interface CreateAssociatedTokenDto {
+  tokenAccount: Address;
+  associatedTokenAccount: Address;
+  ataSignature: Signature;
+}
 
 export const createDefaultSolanaClient = (): Client => {
   const rpc = createSolanaRpc('http://127.0.0.1:8899');
@@ -240,7 +249,7 @@ export const createTokenWithAmount = async (
     mintAuthority: TransactionSigner;
     owner: TransactionSigner;
   },
-): Promise<Address> => {
+): Promise<CreateAssociatedTokenDto> => {
   const token = await generateKeyPairSigner();
   const [createAccount, initToken] = await getCreateTokenInstructions({
     ...input,
@@ -255,12 +264,55 @@ export const createTokenWithAmount = async (
       input.owner,
       input.extensions ?? [],
     ),
+  ]);
+
+  const { signature, ata } = await createAssociatedTokenAccount(
+    input.payer,
+    input.mint,
+    input.client,
+    token,
+    input.mintAuthority,
+    input.amount,
+  );
+
+  return {
+    tokenAccount: token.address,
+    associatedTokenAccount: ata,
+    ataSignature: signature,
+  };
+};
+
+export const createAssociatedTokenAccount = async (
+  payer: TransactionSigner<string>,
+  mint: Address,
+  client: Client,
+  token: KeyPairSigner,
+  mintAuthority?: TransactionSigner<string>,
+  amount?: number | bigint,
+) => {
+  // // When we create and initialize a token account at this address.
+  const createAta = await getCreateAssociatedTokenInstructionAsync({
+    payer,
+    mint,
+    owner: payer.address,
+  });
+
+  // // Then we expect the token account to exist and have the following data.
+  const [ata] = await findAssociatedTokenPda({
+    mint,
+    owner: payer.address,
+    tokenProgram: TOKEN_2022_PROGRAM_ADDRESS,
+  });
+
+  const signature = await sendAndConfirmInstructions(client, payer, [
+    createAta,
     getMintToInstruction({
-      mint: input.mint,
-      token: token.address,
-      mintAuthority: input.mintAuthority,
-      amount: input.amount,
+      mint,
+      token: ata,
+      mintAuthority: mintAuthority,
+      amount,
     }),
   ]);
-  return token.address;
+
+  return { signature, ata };
 };

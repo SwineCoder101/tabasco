@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import {
   createConcentratedLiquidityPoolInstructions,
   fetchWhirlpoolsByTokenPair,
-  openPositionInstructions,
+  openFullRangePositionInstructions,
   setDefaultFunder,
   setWhirlpoolsConfig,
 } from '@orca-so/whirlpools';
@@ -92,28 +92,34 @@ export class SolanaOrcaService {
   }
 
   async createPosition(whirlpoolAddress: string, param: any) {
-    const lowerBound = 0.0001; // Example lower bound
-    const upperBound = 0.0005; // Example upper bound
-
+    const lowerBound = 0.0000001; // Example lower bound
+    const upperBound = 1.0; // Example upper bound
+    const slippage = 0; // Example slippage
     this.logger.debug(`Creating position with the following parameters:`);
     this.logger.debug(`Whirlpool Address: ${whirlpoolAddress}`);
-    this.logger.debug(`TokenB amount: ${param?.tokenB.toString()}`);
     this.logger.debug(`Lower Bound: ${lowerBound}`);
     this.logger.debug(`Upper Bound: ${upperBound}`);
+    this.logger.debug(`Slippage: 100`);
 
-    const { instructions, positionMint } = await openPositionInstructions(
-      this.client.rpc,
-      address(whirlpoolAddress),
-      param,
-      lowerBound,
-      upperBound,
-      100,
-      this.authority,
-    );
-
-    this.logger.log(`Created Position Mint: ${positionMint}`);
-    await this.executeInstructions(instructions);
-    return positionMint;
+    try {
+      const { quote, instructions, positionMint, initializationCost } =
+        await openFullRangePositionInstructions(
+          this.client.rpc,
+          address(whirlpoolAddress),
+          param,
+          slippage,
+          this.authority,
+        );
+      this.logger.debug(`initializationCost: ${initializationCost}`);
+      this.logger.debug(`Quote token max B: ${quote.tokenEstB}`);
+      this.logger.debug(`Quote token max A: ${quote.tokenEstA}`);
+      this.logger.log(`Created Position Mint: ${positionMint}`);
+      await this.executeInstructions(instructions);
+      return positionMint;
+    } catch (error) {
+      this.logger.error(`Error creating position: ${error}`);
+      throw error;
+    }
   }
 
   private async executeInstructions(instructions: IInstruction<string>[]) {
