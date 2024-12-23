@@ -18,11 +18,13 @@ export class NeynarService {
   private webhookSecret: string;
 
   constructor(private readonly configService: ConfigService) {
-    const apiKey = this.configService.get<string>('NEYNAR_API_KEY');
-    this.signerUuid = this.configService.get<string>('SIGNER_UUID');
-    this.webhookSecret = this.configService.get<string>(
-      'NEYNAR_WEBHOOK_SECRET',
-    );
+    const apiKey = this.configService.get<string>('neynar.apiKey');
+    this.signerUuid = this.configService.get<string>('signerUuid');
+    this.webhookSecret = this.configService.get<string>('neynar.webhookSecret');
+    this.logger.debug(`Signer UUID: ${this.signerUuid}`);
+    this.logger.debug(`Webhook Secret: ${this.webhookSecret}`);
+    this.logger.debug(`API Key: ${apiKey}`);
+
     this.client = new NeynarAPIClient({
       apiKey: apiKey,
     });
@@ -42,6 +44,7 @@ export class NeynarService {
       return response;
     } catch (err) {
       this.logger.error('Error publishing cast:', err);
+      throw err;
     }
   }
 
@@ -63,29 +66,31 @@ export class NeynarService {
       return response;
     } catch (err) {
       this.logger.error('Error publishing reply:', err);
+      throw err;
     }
   }
 
   async generateHookData(body: any, sig: any): Promise<HookDataDto> {
+    const bodyString = typeof body === 'string' ? body : JSON.stringify(body); // Ensure body is a string
+    this.logger.debug(`Body: ${bodyString}`);
+
     const hmac = createHmac('sha512', this.webhookSecret);
-    hmac.update(body);
+    hmac.update(bodyString); // Use the stringified body
     const generatedSignature = hmac.digest('hex');
 
     const isValid = generatedSignature === sig;
 
     if (!sig) {
       this.logger.error('Neynar signature missing from request headers');
+      throw new Error('Neynar signature missing from request headers');
     }
 
     if (!isValid) {
       this.logger.error('Invalid webhook signature');
+      throw new Error('Invalid webhook signature');
     }
 
-    const hookData: HookDataDto = JSON.parse(body) as {
-      created_at: number;
-      type: 'cast.created';
-      data: Cast;
-    };
+    const hookData: HookDataDto = JSON.parse(bodyString) as HookDataDto;
     return hookData;
   }
 

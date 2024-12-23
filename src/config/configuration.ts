@@ -7,10 +7,12 @@ export default async () => {
     process.env.RPC_WSS,
   );
   const authorityWallet = await getAuthorityWallet(process.env.SECRET_KEY_PAIR);
+  const base58privateKey = authorityWallet.keyPair.privateKey;
 
   return {
     solClient,
     authorityWallet,
+    base58privateKey,
     pinata: {
       apiKey: process.env.PINATA_API_KEY,
       apiSecret: process.env.PINATA_API_SECRET,
@@ -18,6 +20,7 @@ export default async () => {
     },
     rpcUrl: process.env.RPC,
     rpcWss: process.env.RPC_WSS,
+    neynarAiSignerUuid: process.env.NEYNAR_AI_SIGNER_UUID,
     secretKeyPair: process.env.SECRET_KEY_PAIR,
     signerUuid: process.env.SIGNER_UUID,
     neynar: {
@@ -25,5 +28,6 @@ export default async () => {
       webhookSecret: process.env.NEYNAR_WEBHOOK_SECRET,
     },
     anthropicApiKey: process.env.ANTHROPIC_API_KEY,
+    openaiAPIKey: process.env.OPENAI_API_KEY,
   };
 };

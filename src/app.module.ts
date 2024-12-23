@@ -8,6 +8,7 @@ import { TokenService } from './token.service';
 import { SolanaOrcaService } from './orca.service';
 import { AIService } from './ai.service';
 import { NeynarService } from './neynar.service';
+import { OpenAIService } from './openai.service';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { NeynarService } from './neynar.service';
     SolanaOrcaService,
     AIService,
     NeynarService,
+    OpenAIService,
   ],
 })
 export class AppModule {}

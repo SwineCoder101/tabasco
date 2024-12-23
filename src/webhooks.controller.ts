@@ -26,6 +26,9 @@ export class WebhooksController {
       const body = req.body;
       const sig = req.headers['x-neynar-signature'] as string;
 
+      this.logger.debug('Recevied webhook event:', body);
+      this.logger.debug(`typeof body: ${typeof body}`);
+
       if (!sig) {
         throw new HttpException(
           'Neynar signature missing from request headers',

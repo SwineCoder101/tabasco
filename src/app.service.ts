@@ -19,11 +19,11 @@ export class AppService {
   ) {
     this.logEnvVariables();
     // this.warpcasttest();
-    this.initialize(); // Enable for testing purposes
+    // this.initialize(); // Enable for testing purposes
   }
 
   private async warpcasttest() {
-    const msg = 'Its a pleasent evening in Ho Chi Minh City';
+    const msg = 'Its a sunny day today :-)';
     await this.neynarService.publishCast(msg);
   }
 
