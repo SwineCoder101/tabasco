@@ -1,73 +1,138 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+# Tabasco - Farcaster Bot
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Tabasco is a decentralized application (dApp) built on Solana with Farcaster integrations, leveraging concentrated liquidity pools using the Orca Whirlpools SDK. The project integrates advanced blockchain technologies with AI-driven user interactions to promote meme coins and enable seamless DeFi transactions. This is a NestJS-based project with a focus on scalability, performance, and developer-friendly architecture.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## Features
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- **Concentrated Liquidity Management**: Utilize Orca Whirlpools to create and manage concentrated liquidity pools for efficient trading.
+- **Token-2022 Extensions**: Support for Solana’s Token-2022 standard, enabling advanced token functionalities.
+- **AI-Driven Cast Responses**: Use Anthropic AI to process user-generated casts (posts) and generate insightful promotional concepts for meme coins.
+- **Integration with Farcaster**: Incorporates Neynar SDK to interact with Farcaster’s decentralized social network.
+- **Future Enhancements**: Development of a character-driven AI agent inspired by Eliza AI for engaging user experiences.
 
-## Installation
+---
 
-```bash
-$ npm install
-```
+## Technologies Used
 
-## Running the app
+### Core Framework
+- **[NestJS](https://nestjs.com/)**: A progressive Node.js framework for building scalable server-side applications.
 
-```bash
-# development
-$ npm run start
+### Blockchain Tools
+- **[@solana/web3.js](https://github.com/solana-labs/solana-web3.js)**: Solana’s core library for interacting with the blockchain.
+- **[@orca-so/whirlpools](https://orca-so.gitbook.io/whirlpools/)**: SDK for managing concentrated liquidity pools on Solana.
+- **[@solana-program/token](https://github.com/solana-labs/solana-program-library)**: Solana’s standard token library.
+- **[@solana-program/token-2022](https://github.com/solana-labs/solana-program-library/tree/master/token-2022)**: Extensions for advanced token functionalities like transfer fees.
 
-# watch mode
-$ npm run start:dev
+### AI Integration
+- **[@ai-sdk/anthropic](https://anthropic.com/)**: Anthropic’s AI SDK used to process Farcaster casts and generate promotional content.
+- **AI Character Development**: Inspired by Eliza AI, future enhancements will include creating a conversational agent to interact with users creatively.
 
-# production mode
-$ npm run start:prod
-```
+### Farcaster Integration
+- **[@neynar/nodejs-sdk](https://neynar.com/)**: SDK for interacting with Farcaster, a decentralized social network.
 
-## Test
+### Media Storage
+- **[@pinata/sdk](https://pinata.cloud/)**: SDK for managing IPFS-based media storage.
 
-```bash
-# unit tests
-$ npm run test
+### Infrastructure
+- **[Railway](https://railway.app/)**: Cloud deployment platform for running the application’s backend infrastructure.
 
-# e2e tests
-$ npm run test:e2e
+---
 
-# test coverage
-$ npm run test:cov
-```
+## Project Architecture
+![image](https://github.com/user-attachments/assets/d03a7b3d-f4d0-440e-80d7-5f1149b5237a)
 
-## Support
+### Infrastructure
+The backend is deployed on **Railway**, ensuring a scalable and reliable environment. The application is designed for high throughput and optimized for Solana’s low-latency blockchain.
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+### AI Workflow
+1. Users create casts on Farcaster.
+2. The casts are fetched using **Neynar SDK**.
+3. Anthropic AI processes the cast as a prompt and generates responses to promote meme coins.
+4. Future updates will include an interactive AI agent with a defined character inspired by **Eliza AI**.
 
-## Stay in touch
+---
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## Prerequisites
+
+- **Node.js**: Version `>20`. Ensure your environment meets this requirement.
+- **Solana CLI**: For blockchain interactions (optional but recommended).
+- **Farcaster Account**: To create and fetch casts for interaction.
+
+---
+
+## Getting Started
+
+### Installation
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/SwineCoder101/tabasco.git
+   cd tabasco
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+   or
+   ```bash
+   pnpm install
+   ```
+
+3. Configure environment variables:
+   - Copy `.env.example` to `.env` and update the required variables, including Solana RPC URLs, Farcaster API keys, and Railway configurations.
+
+### Scripts
+- **Development**:
+  ```bash
+  npm run start:dev
+  ```
+- **Build**:
+  ```bash
+  npm run build
+  ```
+- **Linting**:
+  ```bash
+  npm run lint
+  ```
+- **Testing**:
+  ```bash
+  npm run test
+  ```
+
+---
+
+## Usage
+
+1. **Creating a Whirlpool**:
+   - Use the integrated **Orca SDK** to create concentrated liquidity pools for specific token pairs.
+
+2. **Managing Token-2022 Extensions**:
+   - The application supports advanced token features like transfer fees and non-transferable tokens.
+
+3. **AI-Driven Cast Analysis**:
+   - Process casts fetched from Farcaster through Anthropic AI to generate promotional strategies for meme coins.
+
+4. **Future AI Enhancements**:
+   - Integrate an Eliza-inspired character to engage with users interactively.
+
+---
+
+## Future Enhancements
+
+- **AI Character Interaction**: Develop a conversational AI inspired by Eliza to provide a unique user experience.
+- **Additional Token Features**: Leverage more functionalities of Token-2022 extensions.
+- **Enhanced Analytics**: Add advanced metrics for analyzing liquidity pools and user interactions.
+
+---
 
 ## License
 
-Nest is [MIT licensed](LICENSE).
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+---
+
+## Contributing
+
+We welcome contributions! Please open an issue or submit a pull request for any feature requests or bug fixes.
+
