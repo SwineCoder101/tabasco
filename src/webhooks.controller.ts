@@ -40,15 +40,15 @@ export class WebhooksController {
 
       const text = await this.aiService.generateAIResponse(hookData.data);
 
-      const reply = await this.neynarService.publishReply(
-        text,
-        hookData.data.hash,
-      );
+      // const reply = await this.neynarService.publishReply(
+      //   text,
+      //   hookData.data.hash,
+      // );
 
-      this.logger.log('reply:', reply);
+      // this.logger.log('reply:', reply);
 
       return res.json({
-        message: reply,
+        message: '',
       });
     } catch (error) {
       console.error('Error handling webhook:', error);
