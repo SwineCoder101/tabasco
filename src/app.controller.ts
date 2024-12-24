@@ -57,14 +57,18 @@ export class AppController {
       this.logger.debug(`Creating token: ${name} (${symbol})`);
       this.logger.debug(`Description: ${description}`);
 
-      await this.initializeTokenWithPool(name, symbol);
+      const url = await this.initializeTokenWithPool(name, symbol);
+
+      const fulldescription = `${description} ${url}`;
 
       const reply = await this.neynarService.publishReply(
-        description,
+        fulldescription,
         hookData.data.hash,
       );
 
-      this.logger.debug('reply:', reply);
+      this.logger.debug(
+        `reply: ${reply}, here is the pool with the token deployed: ${url}, best of luck!`,
+      );
 
       return res.json();
     } catch (error) {
