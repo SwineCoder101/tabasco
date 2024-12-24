@@ -18,12 +18,12 @@ export class AppService {
     private readonly aiService: AIService,
   ) {
     this.logEnvVariables();
-    // this.warpcasttest();
+    this.warpcasttest();
     // this.initialize(); // Enable for testing purposes
   }
 
   private async warpcasttest() {
-    const msg = 'Its a sunny day today :-)';
+    const msg = 'Restarting the warp core!';
     await this.neynarService.publishCast(msg);
   }
 

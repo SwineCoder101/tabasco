@@ -9,3 +9,22 @@ const neynarClient = new NeynarAPIClient({
 });
 
 export default neynarClient;
+
+export const getPrompt = (message: string) => {
+  return `
+Extract the name and ticker symbol for a token from the following message:
+"${message}"
+Then create a short, fun description or promotional message for this token. Respond in JSON format as:
+{
+  "name": "Token Name",
+  "symbol": "Ticker Symbol",
+  "description": "Short promotional message"
+}
+`;
+};
+
+export interface AIResponse {
+  name: string;
+  symbol: string;
+  description: string;
+}
