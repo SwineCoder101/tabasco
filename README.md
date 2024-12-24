@@ -130,9 +130,3 @@ The backend is deployed on **Railway**, ensuring a scalable and reliable environ
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
----
-
-## Contributing
-
-We welcome contributions! Please open an issue or submit a pull request for any feature requests or bug fixes.
-
